@@ -1,4 +1,4 @@
-package com.arshad.notes.note.dto;
+package com.arshad.notes.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
