@@ -20,3 +20,11 @@ spring:
 
   flyway:
     enabled: true
+
+  output:
+    ansi:
+      enabled: always
+
+logging:
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
