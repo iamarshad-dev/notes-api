@@ -1,9 +1,14 @@
 package com.arshad.notes.auth.service;
 
+import com.arshad.notes.auth.dto.AuthResponse;
 import com.arshad.notes.auth.dto.AuthenticatedUserResponse;
 import com.arshad.notes.auth.dto.LoginRequest;
 import com.arshad.notes.auth.dto.RegisterRequest;
 import com.arshad.notes.exception.EmailAlreadyExistsException;
+import com.arshad.notes.security.jwt.GeneratedToken;
+import com.arshad.notes.security.jwt.JwtService;
+import com.arshad.notes.security.token.GeneratedRefreshToken;
+import com.arshad.notes.security.token.service.RefreshTokenService;
 import com.arshad.notes.user.entity.User;
 import com.arshad.notes.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +28,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+
     @Transactional
-    public AuthenticatedUserResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
 
         String normalizedEmail = normalizeEmail(request.email());
 
@@ -40,11 +48,11 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return toAuthenticatedUserResponse(savedUser);
+        return createAuthResponse(savedUser);
     }
 
-    @Transactional(readOnly = true)
-    public AuthenticatedUserResponse login(LoginRequest request) {
+    @Transactional
+    public AuthResponse login(LoginRequest request) {
 
         String normalizedEmail = normalizeEmail(request.email());
 
@@ -58,20 +66,38 @@ public class AuthService {
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow();
 
-        return toAuthenticatedUserResponse(user);
+        return createAuthResponse(user);
+    }
+
+    private AuthResponse createAuthResponse(User user) {
+
+        GeneratedToken accessToken =
+                jwtService.generateAccessToken(user);
+
+        GeneratedRefreshToken refreshToken =
+                refreshTokenService.create(user);
+
+        AuthenticatedUserResponse authenticatedUser =
+                new AuthenticatedUserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail()
+                );
+
+        return new AuthResponse(
+                accessToken.value(),
+                refreshToken.value(),
+                "Bearer",
+                accessToken.expiresIn(),
+                refreshToken.expiresIn(),
+                authenticatedUser
+        );
+
     }
 
     private String normalizeEmail(String email) {
         return email
                 .trim()
                 .toLowerCase(Locale.ROOT);
-    }
-
-    private AuthenticatedUserResponse toAuthenticatedUserResponse(User user) {
-        return new AuthenticatedUserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
     }
 }

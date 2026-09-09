@@ -5,11 +5,11 @@ CREATE TABLE refresh_tokens (
 
     token_hash VARCHAR(64) NOT NULL,
 
-    expires_at TIMESTAMPZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
 
-    revoked_at TIMESTAMPZ,
+    revoked_at TIMESTAMPTZ,
 
-    created_at TIMESTAMPZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_refresh_tokens_user
         FOREIGN KEY (user_id)

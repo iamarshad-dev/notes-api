@@ -18,7 +18,7 @@ public class JwtService {
     private final JwtEncoder jwtEncoder;
     private final JwtProperties jwtProperties;
 
-    public GeneratedToken generatedToken(User user) {
+    public GeneratedToken generateAccessToken(User user) {
 
         Instant now = Instant.now();
         Instant expiresAt = now.plus(

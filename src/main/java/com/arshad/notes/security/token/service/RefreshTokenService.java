@@ -8,6 +8,7 @@ import com.arshad.notes.security.token.repository.RefreshTokenRepository;
 import com.arshad.notes.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -28,6 +29,7 @@ public class RefreshTokenService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
+    @Transactional
     public GeneratedRefreshToken create(User user) {
 
         String rawToken = generateSecureToken();
