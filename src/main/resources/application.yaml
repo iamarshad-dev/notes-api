@@ -10,7 +10,6 @@ spring:
 
   jpa:
     open-in-view: false
-
     hibernate:
       ddl-auto: validate
     properties:
@@ -24,6 +23,17 @@ spring:
   output:
     ansi:
       enabled: always
+
+
+app:
+  jwt:
+    issuer: notes-api
+    secret: ${JWT_SECRET}
+    access-token-ttl: 15m
+
+  refresh-token:
+    ttl: 7d
+
 
 logging:
   pattern:
