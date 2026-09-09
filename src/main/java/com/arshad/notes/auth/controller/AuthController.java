@@ -1,6 +1,7 @@
 package com.arshad.notes.auth.controller;
 
 import com.arshad.notes.auth.dto.AuthenticatedUserResponse;
+import com.arshad.notes.auth.dto.LoginRequest;
 import com.arshad.notes.auth.dto.RegisterRequest;
 import com.arshad.notes.auth.service.AuthService;
 import com.arshad.notes.user.entity.User;
@@ -24,11 +25,17 @@ public class AuthController {
     public ResponseEntity<AuthenticatedUserResponse> register(
             @Valid @RequestBody RegisterRequest request
             ) {
-
-        AuthenticatedUserResponse response = authService.register(request);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(response);
+                .body(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticatedUserResponse> login(
+            @Valid @RequestBody LoginRequest request
+            ) {
+        return ResponseEntity.ok(
+                authService.login(request)
+        );
     }
 }
