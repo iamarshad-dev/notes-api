@@ -27,6 +27,7 @@ public class JwtService {
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(jwtProperties.issuer())
+                .audience(java.util.List.of(jwtProperties.audience()))
                 .issuedAt(now)
                 .expiresAt(expiresAt)
 

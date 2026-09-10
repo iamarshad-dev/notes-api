@@ -29,12 +29,24 @@ app:
   jwt:
     issuer: notes-api
     secret: ${JWT_SECRET}
-    access-token-ttl: 15m
+    access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:15m}
+    audience: notes-api
 
   refresh-token:
     ttl: 7d
+    cleanup-enabled: true
+    cleanup-interval: PT1H
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
 
 
 logging:
   pattern:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never

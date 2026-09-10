@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         String normalizedEmail = email
                 .trim()
-                .toLowerCase();
+                .toLowerCase(java.util.Locale.ROOT);
 
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(()->

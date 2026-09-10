@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
+
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -70,10 +70,21 @@ public class JwtConfig {
         decoder.setJwtValidator(
                 new DelegatingOAuth2TokenValidator<>(
                         issuerValidator,
-                        accessTokenValidator
+                        accessTokenValidator,
+                        new JwtClaimValidator<java.util.List<String>>("aud",
+                                aud -> aud != null && aud.contains(properties.audience())),
+                        new JwtClaimValidator<String>("sub", this::validSubject),
+                        new JwtClaimValidator<java.time.Instant>("exp", java.util.Objects::nonNull),
+                        new JwtClaimValidator<java.time.Instant>("iat", issuedAt -> issuedAt != null
+                                && !issuedAt.isAfter(java.time.Instant.now().plusSeconds(60)))
                 )
         );
 
         return decoder;
+    }
+    private boolean validSubject(String subject) {
+        if (subject == null || !subject.matches("[1-9][0-9]{0,18}")) return false;
+        try { return Long.parseLong(subject) > 0; }
+        catch (NumberFormatException ignored) { return false; }
     }
 }

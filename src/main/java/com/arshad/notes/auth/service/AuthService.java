@@ -2,6 +2,7 @@ package com.arshad.notes.auth.service;
 
 import com.arshad.notes.auth.dto.*;
 import com.arshad.notes.exception.EmailAlreadyExistsException;
+import com.arshad.notes.exception.InvalidRefreshTokenException;
 import com.arshad.notes.security.jwt.GeneratedToken;
 import com.arshad.notes.security.jwt.JwtService;
 import com.arshad.notes.security.token.GeneratedRefreshToken;
@@ -39,7 +40,7 @@ public class AuthService {
 
         User user = User.builder()
                 .name(request.name())
-                .email(request.email())
+                .email(normalizedEmail)
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
@@ -66,24 +67,23 @@ public class AuthService {
         return createAuthResponse(user);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public AuthResponse refresh(RefreshTokenRequest request) {
+        var rotated = refreshTokenService.rotate(request.refreshToken());
+        return createAuthResponse(rotated.user(), rotated.token());
+    }
 
-        User user = refreshTokenService.rotate(
-                request.refreshToken()
-        );
-
-        return createAuthResponse(user);
+    @Transactional
+    public void logout(RefreshTokenRequest request) {
+        refreshTokenService.revoke(request.refreshToken());
     }
 
     private AuthResponse createAuthResponse(User user) {
+        return createAuthResponse(user, refreshTokenService.create(user));
+    }
 
-        GeneratedToken accessToken =
-                jwtService.generateAccessToken(user);
-
-        GeneratedRefreshToken refreshToken =
-                refreshTokenService.create(user);
-
+    private AuthResponse createAuthResponse(User user, GeneratedRefreshToken refreshToken) {
+        GeneratedToken accessToken = jwtService.generateAccessToken(user);
         AuthenticatedUserResponse authenticatedUser =
                 new AuthenticatedUserResponse(
                         user.getId(),

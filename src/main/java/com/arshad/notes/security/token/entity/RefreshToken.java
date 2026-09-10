@@ -23,6 +23,10 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "family_id", nullable = false)
+    private RefreshTokenFamily family;
+
 
     @Column(
             name = "token_hash",
@@ -47,7 +51,7 @@ public class RefreshToken {
     private Instant createdAt;
 
     public boolean isExpired() {
-        return expiresAt.isBefore(Instant.now());
+        return !expiresAt.isAfter(Instant.now());
     }
 
     public boolean isRevoked() {

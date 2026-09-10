@@ -2,7 +2,7 @@ package com.arshad.notes.auth.controller;
 
 import com.arshad.notes.auth.dto.*;
 import com.arshad.notes.auth.service.AuthService;
-import com.arshad.notes.user.entity.User;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,11 +37,17 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
             @Valid @RequestBody RefreshTokenRequest request
     ) {
         return ResponseEntity.ok(
                 authService.refresh(request)
         );
+    }
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
     }
 }
