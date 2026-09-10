@@ -1,9 +1,6 @@
 package com.arshad.notes.auth.service;
 
-import com.arshad.notes.auth.dto.AuthResponse;
-import com.arshad.notes.auth.dto.AuthenticatedUserResponse;
-import com.arshad.notes.auth.dto.LoginRequest;
-import com.arshad.notes.auth.dto.RegisterRequest;
+import com.arshad.notes.auth.dto.*;
 import com.arshad.notes.exception.EmailAlreadyExistsException;
 import com.arshad.notes.security.jwt.GeneratedToken;
 import com.arshad.notes.security.jwt.JwtService;
@@ -65,6 +62,16 @@ public class AuthService {
 
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow();
+
+        return createAuthResponse(user);
+    }
+
+    @Transactional
+    public AuthResponse refresh(RefreshTokenRequest request) {
+
+        User user = refreshTokenService.rotate(
+                request.refreshToken()
+        );
 
         return createAuthResponse(user);
     }

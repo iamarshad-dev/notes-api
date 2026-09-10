@@ -1,9 +1,6 @@
 package com.arshad.notes.auth.controller;
 
-import com.arshad.notes.auth.dto.AuthResponse;
-import com.arshad.notes.auth.dto.AuthenticatedUserResponse;
-import com.arshad.notes.auth.dto.LoginRequest;
-import com.arshad.notes.auth.dto.RegisterRequest;
+import com.arshad.notes.auth.dto.*;
 import com.arshad.notes.auth.service.AuthService;
 import com.arshad.notes.user.entity.User;
 import jakarta.validation.Valid;
@@ -37,6 +34,14 @@ public class AuthController {
             ) {
         return ResponseEntity.ok(
                 authService.login(request)
+        );
+    }
+
+    public ResponseEntity<AuthResponse> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        return ResponseEntity.ok(
+                authService.refresh(request)
         );
     }
 }

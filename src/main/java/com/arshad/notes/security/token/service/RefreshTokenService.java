@@ -1,6 +1,7 @@
 package com.arshad.notes.security.token.service;
 
 
+import com.arshad.notes.exception.InvalidRefreshTokenException;
 import com.arshad.notes.security.token.GeneratedRefreshToken;
 import com.arshad.notes.security.token.RefreshTokenProperties;
 import com.arshad.notes.security.token.entity.RefreshToken;
@@ -8,7 +9,6 @@ import com.arshad.notes.security.token.repository.RefreshTokenRepository;
 import com.arshad.notes.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,20 +29,16 @@ public class RefreshTokenService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    @Transactional
     public GeneratedRefreshToken create(User user) {
 
         String rawToken = generateSecureToken();
 
-        String tokenHash = hash(rawToken);
-
-        Instant expiresAt = Instant.now()
-                .plus(properties.ttl());
-
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
-                .tokenHash(tokenHash)
-                .expiresAt(expiresAt)
+                .tokenHash(hash(rawToken))
+                .expiresAt(
+                        Instant.now().plus(properties.ttl())
+                )
                 .build();
 
         refreshTokenRepository.save(refreshToken);
@@ -53,6 +49,23 @@ public class RefreshTokenService {
         );
     }
 
+    public User rotate(String rawToken) {
+
+        String tokenHash = hash(rawToken);
+
+        RefreshToken refreshToken =
+                refreshTokenRepository
+                        .findByTokenHash(tokenHash)
+                        .orElseThrow(InvalidRefreshTokenException::new);
+
+        if (!refreshToken.isActive()) {
+            throw new InvalidRefreshTokenException();
+        }
+
+        refreshToken.revoke();
+
+        return refreshToken.getUser();
+    }
 
     private String generateSecureToken() {
 
@@ -71,11 +84,12 @@ public class RefreshTokenService {
             MessageDigest digest =
                     MessageDigest.getInstance("SHA-256");
 
-            byte[] hash = digest.digest(
+            byte[] hashedBytes = digest.digest(
                     token.getBytes(StandardCharsets.UTF_8)
             );
 
-            return HexFormat.of().formatHex(hash);
+            return HexFormat.of()
+                    .formatHex(hashedBytes);
 
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException(
